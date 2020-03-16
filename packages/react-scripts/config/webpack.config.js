@@ -19,6 +19,7 @@ const InlineChunkHtmlPlugin = require('react-dev-utils/InlineChunkHtmlPlugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const PurgecssPlugin = require('purgecss-webpack-plugin');
 const safePostCssParser = require('postcss-safe-parser');
 const ManifestPlugin = require('webpack-manifest-plugin');
 const InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
@@ -58,6 +59,9 @@ const usePostcssConfig = fs.existsSync(
   path.join(paths.appPath, 'postcss.config.js') ||
     path.join(paths.appPath, '.postcssrc.js')
 );
+
+// Check if purgecss config exists
+const usePurgecssConfig = fs.existsSync(paths.appPurgecssConfig);
 
 // style files regexes
 const cssRegex = /\.css$/;
@@ -275,7 +279,10 @@ module.exports = function(webpackEnv) {
             preset: ['default', { minifyFontValues: { removeQuotes: false } }],
           },
         }),
-      ],
+        usePurgecssConfig
+          ? new PurgecssPlugin(require(paths.appPurgecssConfig))
+          : null,
+      ].filter(Boolean),
       // Automatically split vendor and commons
       // https://twitter.com/wSokra/status/969633336732905474
       // https://medium.com/webpack/webpack-4-code-splitting-chunk-graph-and-the-splitchunks-optimization-be739a861366
